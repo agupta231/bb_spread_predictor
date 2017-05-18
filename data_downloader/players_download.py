@@ -1,15 +1,21 @@
+from string import ascii_lowercase
 import urllib2
 import os
 
+
 class Players_Handler:
     def __init__(self):
-        self.master_players_list = []
+        pass
 
     def update_player_list(self):
         if os.path.isfile(os.getcwd() + "/../data/players.txt"):
+            # Yall finna import old data here
             pass
         else:
-            print False
+            master_player_list = []
+
+            for letter in ascii_lowercase:
+                master_player_list.append(self._download_and_parse("http://www.basketball-reference.com/players/" + letter + '/'))
 
     def _download_and_parse(self, url):
         response = urllib2.urlopen(url)
