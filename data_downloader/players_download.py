@@ -10,20 +10,43 @@ class Players_Handler:
         pass
 
     def update_player_list(self):
-        if os.path.isfile(os.getcwd() + "/../data/players.txt"):
-            # Yall finna import old data here
-            pass
-        else:
-            pool = ThreadPool(8)
-            results = pool.map(Players_Handler._download_and_parse, ascii_lowercase)
-            flatten = lambda l: [item for sublist in l for item in sublist]
+        pool = ThreadPool(8)
+        results = pool.map(Players_Handler._download_and_parse, ascii_lowercase)
+        flatten = lambda l: [item for sublist in l for item in sublist]
 
-            final_array = flatten(results)
+        new_players_array = flatten(results)
+
+        if os.path.isfile(os.getcwd() + "/../data/players.txt"):
+            master_players_array = []
+            players_data_file = open(os.getcwd() + "/../data/players.txt", "r")
+
+            for line in players_data_file:
+                raw_data = line.rstrip()
+                sub_array = raw_data.split(",")
+
+                master_players_array.append([sub_array[0], int(sub_array[1])])
+
+            players_data_file.close()
+
+            for player in new_players_array:
+                if not (player in (i[0] for i in master_players_array)):
+                    master_players_array.append([player, len(master_players_array) + 1])
+
+                    print player + " added"
 
             players_data_file = open(os.getcwd() + "/../data/players.txt", "w")
+            players_data_file.truncate()
 
-            for i in xrange(len(final_array)):
-                players_data_file.write(final_array[i] + "," + str(i) + "\n")
+            for arr in master_players_array:
+                players_data_file.write(arr[0] + "," + str(arr[1]) + "\n")
+
+            players_data_file.close()
+
+        else:
+            players_data_file = open(os.getcwd() + "/../data/players.txt", "w")
+
+            for i in xrange(len(new_players_array)):
+                players_data_file.write(new_players_array[i] + "," + str(i) + "\n")
 
             players_data_file.close()
 
