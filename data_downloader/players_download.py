@@ -6,17 +6,17 @@ import os
 
 
 class Players_Handler:
-    def __init__(self):
-        pass
-
     def update_player_list(self):
         pool = ThreadPool(8)
         results = pool.map(Players_Handler._download_and_parse, ascii_lowercase)
+
         flatten = lambda l: [item for sublist in l for item in sublist]
 
         new_players_array = flatten(results)
 
         if os.path.isfile(os.getcwd() + "/../data/players.txt"):
+            # Modify function so that it doesn't have to rewrite the whole file
+
             master_players_array = []
             players_data_file = open(os.getcwd() + "/../data/players.txt", "r")
 
@@ -30,7 +30,7 @@ class Players_Handler:
 
             for player in new_players_array:
                 if not (player in (i[0] for i in master_players_array)):
-                    master_players_array.append([player, len(master_players_array) + 1])
+                    master_players_array.append([player, len(master_players_array) + 2])
 
                     print player + " added"
 
