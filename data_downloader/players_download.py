@@ -1,4 +1,6 @@
 from string import ascii_lowercase
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
 import urllib2
 import os
 
@@ -12,16 +14,32 @@ class Players_Handler:
             # Yall finna import old data here
             pass
         else:
-            master_player_list = []
+            pool = ThreadPool(8)
+            results = pool.map(Players_Handler._download_and_parse, ascii_lowercase)
+            flatten = lambda l: [item for sublist in l for item in sublist]
 
-            for letter in ascii_lowercase:
-                master_player_list.append(self._download_and_parse("http://www.basketball-reference.com/players/" + letter + '/'))
+            final_array = flatten(results)
 
-    def _download_and_parse(self, url):
-        response = urllib2.urlopen(url)
+            players_data_file = open(os.getcwd() + "/../data/players.txt", "w")
+
+            for i in xrange(len(final_array)):
+                players_data_file.write(final_array[i] + "," + str(i) + "\n")
+
+            players_data_file.close()
+
+    @staticmethod
+    def _download_and_parse(letter):
+        print "Downloading Letter: " + letter
+
+        try:
+            response = urllib2.urlopen("http://www.basketball-reference.com/players/" + letter + '/')
+        except:
+            print letter + " failed"
+            return []
+
         buffer = response.read()
 
-        table_markers = self._find_string_locations(buffer, "tbody")
+        table_markers = Players_Handler._find_string_locations(buffer, "tbody")
         player_data_raw = buffer[table_markers[-2]:table_markers[-1]]
 
         del buffer
@@ -44,7 +62,8 @@ class Players_Handler:
 
         return player_sublist
 
-    def _find_string_locations(self, string, substring):
+    @staticmethod
+    def _find_string_locations(string, substring):
         location_array = []
         index = 0
 
